@@ -1,0 +1,23 @@
+3 widoki:
+
+Widok nr 1:
+
+dla zula zamawiajacego gdzie klika na stronie firmy odnosnik do osobnej aplikacji webowej gdzie moze Sobie zrobic wycene danego porudktu jakim jest zainteresowany (okno, brama, drzwi, rolety zewn wewn, parapety I inne lelum polelum). W skrocie formualrz wyceny produktu z guzikiem wyslania do mistrza.
+
+
+Widok nr 2:
+mistrza gdzie wszystkie requesty formualrzary klientow ma do wsywetielnia w swoim panelu, mozliwosc sortowania wzgledem np. daty albo typu). Wyswietlaja sie podstawowe w liscie elemtny kazdego requesta. Moze w kazdy request Sobie wejsc I przejrzec szczegoly. Kazde zamowienie ktore zostalo zlozone poprawnie ma status OCZEKUJACE w adekwatnym kolorku, ktore moze 
+
+
+Widok nr 3: 
+dla mongola ktory po zatwierdzeniu requesta zamowienia przez mistrza w widoku nr 2, to zaowienie rozlozone na czesci pierwsze pojawia sie w panelu nr 3 dla mongola ktory podczas procesu tworzenia tego zamowienia np. okna, brama garazowa; to bedzie mogl poszczegholne procesoy tego zamowienia Sobie odklikiwac I na pdostawie aktualnego % ukonczenia tego zamowienia beda sie zmieniac statusy zamowienia. Po zrobieniu 100% status sie robi gotowe do wyslania I w widoku nr2 mistrzu se moze cos z tym zrobic 
+
+
+
+
+
+
+
+PROCES:
+
+ZUL CHCE BRAME -> ZUL WCHODZI DO KREATORA WYCEN -> ZUL POPRAWNY FORMUALRZ WYSYLA GUZIKIEM DO MISTRZA -> MISTRZ MA W PANELU REQUEST WYCENY OD ZULA -> MISTRZU AKCEPTUJE REQUESTA I WTEDY PRZYCHODZI WIADOMOSCDO ZULA NA MAIL ALBO INNE GOWNO ZE JEGO BRAMA JEST PRZYJETA DO REALIZACJI O PRZYBLIZONEJ DACIE I INNYCH PARAMETRACH CO MU SIE MOGA KURWA NIE SPODOPOBAC I WTEDY MA 48 GODZINY ROBOCZE NA AKCEPTACJE I JAK ZAAKCEPTUJE TO JEST STATUS W REALIZACJI/W TOKU A JAK NIE ODPISZE ALBO ODPISZE NEGATYWNIE TO ZAMOWIENIE JEST ANULOWANE I SPIERDALA Z WIDOKU MISSTRZA -> PO AKCEPTACJI MISTRZA ZAMOWIENIE PRZCHODZI DO 3 WIDOKU DLA MONGOLA NA LINII PRODUKCYJNEJ MA WSZYSTKEI SZCZEGOLY JAK ADRES TERMIN I TRELE MORELE I MOZE TAK ODCHACZAC CO JEST JUZ ZROBIONE -> JAK ODCHACZY WSZYSTKO TO ZAMOWIENIE MA STATUS ZREALIZOWANE I WTEDY MISTRZU MA W PANELU SYGNAL ZE MA DZWONIC UMAWIAC SIE NA MONTAZ -> MOZNA ODCHACZYC ZE MONTAZ ZAKONCZONY I WTEDY ZAMOWIENIE MA STATUS KONIEC I SPIERDALA Z PANELU DO ARCHIWUM

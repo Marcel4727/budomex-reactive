@@ -1,0 +1,64 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code / Cursor / Claude ###
+.vscode/
+.cursor/
+.claude/
+
+### AI assistant notes (local) ###
+CLAUDE.md
+
+### Database & Secrets ###
+src/main/resources/application.properties
+application-local.properties
+**/application-local.properties
+*.db
+*.sql.backup
+
+### Frontend / Node.js ###
+node_modules/
+**/node_modules/
+frontend/dist/
+.env
+.env.local
+.env.*.local
+
+### Temporary files ###
+*.tmp
+*.bak
+scratch_*.py
+test_*.py
+tokens.txt

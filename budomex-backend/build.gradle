@@ -1,0 +1,93 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.1'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id "com.github.node-gradle.node" version "7.0.2"
+}
+
+node {
+	version = "22.14.0"
+	download = true
+	nodeProjectDir = file("${project.projectDir}/frontend")
+}
+
+group = 'com.pbs'
+version = '0.0.1-SNAPSHOT'
+description = 'LuisMarcelOlekPBS'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// --- Reactive web stack ---
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Jackson - jawnie, bo NotificationWebSocketHandler uzywa ObjectMapper
+	// do serializacji eventow WS, a samo dociagniecie przez webflux
+	// (zaleznosc transytywna) nie zawsze trafia na compileClasspath.
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// --- Reactive data access (R2DBC) ---
+	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+	runtimeOnly 'org.postgresql:r2dbc-postgresql'
+	runtimeOnly 'io.r2dbc:r2dbc-h2'
+	runtimeOnly 'io.r2dbc:r2dbc-pool'
+
+	// --- JDBC driver tylko do inicjalizacji schematu (spring.sql.init) i ewentualnych skryptow ---
+	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'com.h2database:h2'
+
+	// --- Security (reaktywne) ---
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// --- JWT ---
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+// === Frontend Tasks ===
+// Plugin node-gradle automatycznie tworzy: npmInstall, npm_run_dev, npm_run_build
+// Tworzymy aliasy dla wygody
+
+tasks.register('npmDev', com.github.gradle.node.npm.task.NpmTask) {
+	description = 'Uruchamia frontend w trybie developerskim (npm run dev)'
+	group = 'frontend'
+	args = ['run', 'dev']
+	dependsOn 'npmInstall'
+}
+
+tasks.register('npmBuild', com.github.gradle.node.npm.task.NpmTask) {
+	description = 'Buduje frontend do produkcji (npm run build)'
+	group = 'frontend'
+	args = ['run', 'build']
+	dependsOn 'npmInstall'
+}

@@ -1,0 +1,172 @@
+### ============================================================
+### Testy reczne API Budomex (reaktywny backend)
+###
+### JAK UZYWAC W INTELLIJ:
+### 1. Upewnij sie, ze backend jest odpalony (Run na BudomexWebAppApplication)
+### 2. Kliknij zielony trojkacik po lewej stronie kazdego naglowka (### lub przy POST/GET)
+### 3. Odpowiedz pojawi sie w nowym panelu po prawej
+### 4. Zmienna {{authToken}} jest automatycznie wypelniana po wykonaniu
+###    zadania "Logowanie jako manager" (patrz skrypt na dole tego zadania)
+### ============================================================
+
+
+### 1. Logowanie jako manager - zwraca token JWT
+# To zadanie jako pierwsze, zeby pozniejsze zadania mogly uzyc tokenu
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "manager",
+  "password": "manager123"
+}
+
+> {%
+    client.test("Status 200", function() {
+        client.assert(response.status === 200, "Oczekiwano 200, otrzymano " + response.status);
+    });
+    client.global.set("authToken", response.body.token);
+    client.log("Token zapisany: " + response.body.token);
+%}
+
+### 2. Logowanie jako pracownik (worker) - osobny token
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "worker",
+  "password": "worker123"
+}
+
+> {%
+    client.global.set("workerToken", response.body.token);
+%}
+
+### 3. Zlozenie zapytania o wycene jako klient (endpoint publiczny, bez tokenu)
+POST http://localhost:8080/api/customer/quote
+Content-Type: application/json
+
+{
+  "customerName": "Jan Testowy",
+  "customerEmail": "jan.testowy@example.com",
+  "customerPhone": "600100200",
+  "customerAddress": "ul. Testowa 1, Bydgoszcz",
+  "productType": "OKNO",
+  "productSpecifications": "Okno PVC 120x150, kolor bialy, dwuszybowe",
+  "quantity": 2,
+  "estimatedDeliveryDate": "2026-08-01"
+}
+
+### 4. Lista aktywnych zamowien jako manager (wymaga tokenu z zadania 1)
+GET http://localhost:8080/api/manager/orders
+Authorization: Bearer {{authToken}}
+
+### 5. Statystyki managera (liczniki statusow, suma wartosci)
+GET http://localhost:8080/api/manager/stats
+Authorization: Bearer {{authToken}}
+
+### 6. Szczegoly konkretnego zamowienia (zmien {id} na realne ID z odpowiedzi #4)
+GET http://localhost:8080/api/manager/order/1
+Authorization: Bearer {{authToken}}
+
+### 7. Lista pozycji magazynowych
+GET http://localhost:8080/api/manager/inventory
+Authorization: Bearer {{authToken}}
+
+### 8. Lista pracownikow (panel HR)
+GET http://localhost:8080/api/manager/hr/workers
+Authorization: Bearer {{authToken}}
+
+### 9. Test bez tokenu - powinno zwrocic 401/403 (potwierdza, ze security dziala)
+GET http://localhost:8080/api/manager/orders
+
+### 10. Panel pracownika - zamowienia przypisane do "worker" (wymaga workerToken z zadania 2)
+GET http://localhost:8080/api/worker/orders
+Authorization: Bearer {{workerToken}}
+
+### 11. Test zlego logowania - powinno zwrocic 401/403
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "manager",
+  "password": "zle_haslo"
+}
+
+
+### ============================================================
+### DALSZA CZESC CYKLU ZYCIA ZAMOWIENIA (po testach 1-11 powyzej)
+### Zaklada, ze zamowienie #1 istnieje (z testu 3) i jest w statusie OCZEKUJACE
+### ============================================================
+
+### 12. Manager wycenia zamowienie #1 (zmienia status na ZAAKCEPTOWANE_PRZEZ_MISTRZA)
+POST http://localhost:8080/api/manager/order/1/approve
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "price": 2500.00,
+  "estimatedDeliveryDate": "2026-08-01",
+  "managerNotes": "Standardowa realizacja, brak uwag"
+}
+
+> {%
+    client.test("Status 200", function() {
+        client.assert(response.status === 200, "Oczekiwano 200, otrzymano " + response.status);
+    });
+    client.global.set("acceptanceToken", response.body.acceptanceToken);
+    client.log("Token akceptacji: " + response.body.acceptanceToken);
+%}
+
+### 13. Sprawdzenie szczegolow zamowienia #1 jako manager (powinien byc nowy status + cena)
+GET http://localhost:8080/api/manager/order/1
+Authorization: Bearer {{authToken}}
+
+### 14. Podglad oferty jako klient (uzywa tokenu akceptacji z testu 12, publiczny endpoint)
+GET http://localhost:8080/api/order/accept/{{acceptanceToken}}
+
+### 15. Klient akceptuje oferte (status -> W_REALIZACJI, rezerwacja materialow)
+POST http://localhost:8080/api/order/accept/{{acceptanceToken}}/confirm
+
+### 16. Manager przypisuje pracownika "worker" (id=2) do zamowienia #1
+# Jesli ID pracownika sie nie zgadza, sprawdz GET /api/manager/hr/workers
+POST http://localhost:8080/api/manager/order/1/workers
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "workerIds": [2]
+}
+
+### 17. Manager przypisuje zadania produkcyjne do zamowienia #1
+POST http://localhost:8080/api/manager/order/1/tasks
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "tasks": ["Przygotowanie profili", "Montaz szyby", "Kontrola jakosci"]
+}
+
+### 18. Worker sprawdza swoje zamowienia - teraz #1 powinno byc widoczne (W_REALIZACJI + przypisany)
+GET http://localhost:8080/api/worker/orders
+Authorization: Bearer {{workerToken}}
+
+### 19. Worker pobiera szczegoly zamowienia #1 (z lista zadan, zeby wziac ID zadania)
+GET http://localhost:8080/api/worker/order/1
+Authorization: Bearer {{workerToken}}
+
+### 20. Worker oznacza pierwsze zadanie jako ukonczone (zmien {taskId} na realne ID z testu 19)
+POST http://localhost:8080/api/worker/task/1/complete
+Authorization: Bearer {{workerToken}}
+
+### 21. Sprawdzenie postepu zamowienia po ukonczeniu zadania (completionPercentage > 0)
+GET http://localhost:8080/api/manager/order/1
+Authorization: Bearer {{authToken}}
+
+### 22. Test dostepu HR - manager widzi liste pracownikow z obciazeniem
+GET http://localhost:8080/api/manager/hr/workers
+Authorization: Bearer {{authToken}}
+
+### 23. Worker próbuje wejsc na endpoint managera - powinno zwrocic 403 (zla rola)
+GET http://localhost:8080/api/manager/orders
+Authorization: Bearer {{workerToken}}
+
