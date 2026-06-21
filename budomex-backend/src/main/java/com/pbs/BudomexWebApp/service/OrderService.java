@@ -190,7 +190,7 @@ public class OrderService {
 
                     return orderRepository.save(order)
                             .flatMap(saved -> orderHistoryRepository.save(historyEntry).thenReturn(saved))
-                            .doOnNext(emailService::sendApprovalEmail)
+                            .flatMap(saved -> emailService.sendApprovalEmail(saved).thenReturn(saved))
                             .flatMap(saved -> broadcast(saved).thenReturn(saved));
                 });
     }
@@ -214,7 +214,7 @@ public class OrderService {
 
                     return orderRepository.save(order)
                             .flatMap(saved -> orderHistoryRepository.save(historyEntry).thenReturn(saved))
-                            .doOnNext(emailService::sendRejectionEmail)
+                            .flatMap(saved -> emailService.sendRejectionEmail(saved).thenReturn(saved))
                             .flatMap(saved -> broadcast(saved).thenReturn(saved));
                 });
     }
@@ -246,7 +246,7 @@ public class OrderService {
 
                     return orderRepository.save(order)
                             .flatMap(saved -> orderHistoryRepository.save(historyEntry).thenReturn(saved))
-                            .doOnNext(emailService::sendCustomerAcceptanceConfirmation)
+                            .flatMap(saved -> emailService.sendCustomerAcceptanceConfirmation(saved).thenReturn(saved))
                             .flatMap(saved -> inventoryService.reserveForOrder(saved)
                                     .onErrorResume(e -> {
                                         log.warn("Nie udało się zarezerwować materiałów dla zamówienia #{}: {}",
@@ -295,13 +295,13 @@ public class OrderService {
                         OrderStatus.ZAAKCEPTOWANE_PRZEZ_MISTRZA, in24hours)
                 .filter(order -> order.getCustomerAcceptanceDeadline() != null
                         && order.getCustomerAcceptanceDeadline().isAfter(LocalDateTime.now()))
-                .flatMap(order -> {
-                    emailService.sendDeadlineReminderEmail(order);
-                    order.setReminderSent(true);
-                    return orderRepository.save(order)
-                            .doOnNext(saved -> log.info(
-                                    "Wysłano przypomnienie o terminie do klienta zamówienia #{}", saved.getId()));
-                })
+                .flatMap(order -> emailService.sendDeadlineReminderEmail(order)
+                        .then(Mono.defer(() -> {
+                            order.setReminderSent(true);
+                            return orderRepository.save(order);
+                        }))
+                        .doOnNext(saved -> log.info(
+                                "Wysłano przypomnienie o terminie do klienta zamówienia #{}", saved.getId())))
                 .then();
     }
 
